@@ -68,7 +68,7 @@ def create_app():
         user_info = data.get("user", "Anonymous")
         if bot_application and bot_application.bot:
             from bot import send_purchase_log
-            loop = bot_application._loop if hasattr(bot_application, '_loop') else None
+            loop = bot_loop
             if loop and loop.is_running():
                 asyncio.run_coroutine_threadsafe(
                     send_purchase_log(bot_application.bot, title, price, user_info),
@@ -118,18 +118,19 @@ def seed_data():
     db.session.commit()
 
 
+bot_loop = None
+
 def run_bot():
-    global bot_application
+    global bot_application, bot_loop
     if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
         logger.warning("BOT_TOKEN not set \u2014 Telegram bot disabled")
         return
     from bot import create_bot_app
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    bot_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(bot_loop)
     bot_application = create_bot_app()
-    bot_application._loop = loop
     logger.info("\U0001f916 Telegram bot starting...")
-    loop.run_until_complete(bot_application.run_polling(drop_pending_updates=True, close_loop=False))
+    bot_loop.run_until_complete(bot_application.run_polling(drop_pending_updates=True, close_loop=False))
 
 
 app = create_app()
@@ -137,5 +138,6 @@ app = create_app()
 if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
-    logger.info("\U0001f680 Flask server starting on http://localhost:5000")
-    app.run(debug=False, port=5000, use_reloader=False)
+    port = int(os.environ.get("PORT", 5000))
+    logger.info(f"\U0001f680 Flask server starting on http://localhost:{port}")
+    app.run(debug=False, host="0.0.0.0", port=port, use_reloader=False)
