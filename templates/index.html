@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% block content %}
+{% set active_count = (1 if filters.category else 0) + (1 if filters.condition else 0) + (1 if filters.min else 0) + (1 if filters.max else 0) %}
+
+{% if not filters.q and not filters.category %}
+<section class="hero glass">
+  <h1>Перехват <span>Store</span></h1>
+  <p>Магазин техники Apple — покупай быстро, безопасно и выгодно.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{{ url_for('products.create') }}">{{ icon('plus', 18) }} Разместить товар</a>
+    <a class="btn" href="https://t.me/iPointManager" target="_blank">{{ icon('telegram', 18) }} Написать менеджеру</a>
+  </div>
+</section>
+{% endif %}
+
+<div class="cats glass glass-sm">
+  <a class="cat-pill {{ 'active' if not filters.category }}" href="{{ url_for('products.index') }}">{{ icon('sparkles', 17) }} Всё</a>
+  {% for c in CATEGORIES %}
+  <a class="cat-pill {{ 'active' if filters.category == c.slug }}" href="{{ url_for('products.index', category=c.slug) }}">{{ icon(c.icon, 17) }} {{ c.name }}</a>
+  {% endfor %}
+</div>
+
+<div class="toolbar">
+  <span class="count">{{ products|length }} объявлений</span>
+  <div class="spacer"></div>
+  <button class="btn btn-filter" data-open-drawer="filtersDrawer">{{ icon('sliders', 18) }} Фильтры{% if active_count %}<span class="fbadge">{{ active_count }}</span>{% endif %}</button>
+</div>
+
+{% if active_count %}
+<div class="active-filters">
+  {% if filters.category %}{% set cn = (CATEGORIES | selectattr('slug','equalto',filters.category) | map(attribute='name') | first) %}
+  <span class="afilter">{{ cn }}<a href="{{ url_for('products.index', q=filters.q, condition=filters.condition, min=filters.min, max=filters.max, sort=filters.sort) }}"><button type="button">{{ icon('x',12) }}</button></a></span>{% endif %}
+  {% if filters.condition %}<span class="afilter">{{ filters.condition }}<a href="{{ url_for('products.index', q=filters.q, category=filters.category, min=filters.min, max=filters.max, sort=filters.sort) }}"><button type="button">{{ icon('x',12) }}</button></a></span>{% endif %}
+  {% if filters.min or filters.max %}<span class="afilter">{{ filters.min or 0 }}–{{ filters.max or '∞' }} ₽<a href="{{ url_for('products.index', q=filters.q, category=filters.category, condition=filters.condition, sort=filters.sort) }}"><button type="button">{{ icon('x',12) }}</button></a></span>{% endif %}
+</div>
+{% endif %}
+
+{% if products %}
+<div class="grid">
+  {% for p in products %}{% include 'partials/card.html' %}{% endfor %}
+</div>
+{% else %}
+<div class="empty glass"><div class="ico">{{ icon('search', 58) }}</div><h3>Ничего не найдено</h3><p>Попробуйте изменить запрос или фильтры.</p><a class="btn btn-primary" href="{{ url_for('products.index') }}">Сбросить фильтры</a></div>
+{% endif %}
+
+{% include 'partials/filters_drawer.html' %}
+{% endblock %}

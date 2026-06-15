@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% block title %}Редактирование профиля — {{ BRAND }}{% endblock %}
+{% block content %}
+<div class="auth-wrap glass" style="max-width:580px">
+  <h1>Редактирование профиля</h1>
+  <p class="sub">Обновите свои данные.</p>
+  <form method="post" enctype="multipart/form-data">
+    <div class="form-group"><label>Имя</label><input type="text" name="name" value="{{ user.name }}" required></div>
+    <div class="form-row">
+      <div class="form-group"><label>Город</label><input type="text" name="city" value="{{ user.city }}"></div>
+      <div class="form-group"><label>Телефон</label><input type="tel" name="phone" value="{{ user.phone }}" placeholder="+7 900 000-00-00"></div>
+    </div>
+    <div class="form-group"><label>О себе</label><textarea name="bio">{{ user.bio }}</textarea></div>
+    <div class="form-group"><label>Аватар</label>
+      <label class="dropzone" for="avInput"><div class="dz-ico">{{ icon('user', 30) }}</div>Выбрать фото</label>
+      <input type="file" id="avInput" name="avatar" accept="image/*" hidden>
+      <div class="preview-grid" id="preview"></div>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">Сохранить</button>
+  </form>
+</div>
+{% endblock %}

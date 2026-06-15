@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% block title %}{{ user.name }} — {{ BRAND }}{% endblock %}
+{% block content %}
+<div class="profile-head glass">
+  <div class="avatar lg">{% if user.avatar %}<img src="{{ url_for('static', filename='uploads/' + user.avatar) }}">{% else %}{{ user.initials }}{% endif %}</div>
+  <div class="info">
+    <h1>{{ user.name }}</h1>
+    {% if user.city %}<p>{{ icon('pin', 14) }} {{ user.city }}</p>{% endif %}
+    {% if user.bio %}<p>{{ user.bio }}</p>{% endif %}
+    <div class="stats">
+      <div class="stat"><b>{{ products|length }}</b> <span>объявлений</span></div>
+      <div class="stat"><b>{{ user.created_at.strftime('%m.%Y') }}</b> <span>на {{ BRAND }}</span></div>
+    </div>
+  </div>
+  <div class="nav-spacer"></div>
+  {% if owner %}
+  <div class="profile-actions">
+    <a class="btn" href="{{ url_for('profile.edit') }}">{{ icon('edit', 18) }} Редактировать</a>
+    <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">{{ icon('logout', 18) }} Выйти</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="section-head"><h2>{{ 'Мои объявления' if owner else 'Объявления продавца' }}</h2>
+  {% if owner %}<a class="btn btn-primary" href="{{ url_for('products.create') }}">{{ icon('plus', 18) }} Добавить</a>{% endif %}
+</div>
+
+{% if products %}
+<div class="grid">{% for p in products %}{% include 'partials/card.html' %}{% endfor %}</div>
+{% else %}
+<div class="empty glass"><div class="ico">{{ icon('box', 58) }}</div><h3>Пока нет объявлений</h3></div>
+{% endif %}
+{% endblock %}

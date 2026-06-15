@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% block content %}
+<div class="empty glass" style="margin-top:60px">
+  <div class="ico">{{ icon('ghost', 58) }}</div>
+  <h1 style="font-size:48px">404</h1>
+  <p>Страница не найдена.</p>
+  <a class="btn btn-primary" href="{{ url_for('products.index') }}" style="margin-top:16px">На главную {{ icon('arrow-right', 18) }}</a>
+</div>
+{% endblock %}

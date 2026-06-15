@@ -1,0 +1,57 @@
+{% from 'partials/icons.html' import icon %}
+{% from 'partials/select.html' import cselect %}
+<aside class="drawer" id="filtersDrawer">
+  <div class="drawer__grab"></div>
+  <form method="get" action="{{ url_for('products.index') }}">
+    {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+    <div class="drawer__head">
+      <h3>Фильтры</h3>
+      <button type="button" class="btn btn-icon" data-close-drawer>{{ icon('x', 20) }}</button>
+    </div>
+
+    <div class="drawer__sec">
+      <label>Категория</label>
+      <div class="chip-row">
+        <label class="chip {{ 'active' if not filters.category }}"><input type="radio" name="category" value="" {{ 'checked' if not filters.category }} hidden>Все</label>
+        {% for c in CATEGORIES %}
+        <label class="chip {{ 'active' if filters.category == c.slug }}"><input type="radio" name="category" value="{{ c.slug }}" {{ 'checked' if filters.category == c.slug }} hidden>{{ c.name }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="drawer__sec">
+      <label>Цена, ₽</label>
+      <div class="range">
+        <div class="range__track"></div>
+        <div class="range__fill"></div>
+        <input type="range" class="range__min" name="min" min="0" max="300000" step="1000" value="{{ filters.min or 0 }}">
+        <input type="range" class="range__max" name="max" min="0" max="300000" step="1000" value="{{ filters.max or 300000 }}">
+      </div>
+      <div class="range__vals"><span class="val-min">0 ₽</span><span class="val-max">300 000 ₽+</span></div>
+    </div>
+
+    <div class="drawer__sec">
+      <label>Состояние</label>
+      <div class="chip-row">
+        <label class="chip {{ 'active' if not filters.condition }}"><input type="radio" name="condition" value="" {{ 'checked' if not filters.condition }} hidden>Любое</label>
+        {% for c in conditions %}
+        <label class="chip {{ 'active' if filters.condition == c }}"><input type="radio" name="condition" value="{{ c }}" {{ 'checked' if filters.condition == c }} hidden>{{ c }}</label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="drawer__sec">
+      <label>Сортировка</label>
+      {{ cselect('sort', [
+        {'value':'new','label':'Сначала новые'},
+        {'value':'price_asc','label':'Сначала дешевле'},
+        {'value':'price_desc','label':'Сначала дороже'}
+      ], filters.sort or 'new') }}
+    </div>
+
+    <div class="drawer__foot">
+      <a href="{{ url_for('products.index') }}" class="btn btn-block">Сбросить</a>
+      <button type="submit" class="btn btn-primary btn-block">Показать</button>
+    </div>
+  </form>
+</aside>

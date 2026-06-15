@@ -1,0 +1,15 @@
+{% from 'partials/icons.html' import icon %}
+<div class="card glass glass-sm">
+  {% if current_user.is_authenticated %}
+  <button class="fav-btn {{ 'active' if (fav_ids is defined and p.id in fav_ids) or (force_fav is defined and force_fav) }}" data-id="{{ p.id }}" title="В избранное">{{ icon('heart-fill', 18) }}</button>
+  {% endif %}
+  <a href="{{ url_for('products.detail', pid=p.id) }}" class="thumb">
+    {% if p.cover %}<img src="{{ url_for('static', filename='uploads/' + p.cover) }}" alt="{{ p.title }}">
+    {% else %}{{ icon((CATEGORIES | selectattr('slug','equalto',p.category) | map(attribute='icon') | first) or 'box', 56) }}{% endif %}
+  </a>
+  <div class="body">
+    <div class="price">{{ "{:,}".format(p.price).replace(',', ' ') }} ₽</div>
+    <a href="{{ url_for('products.detail', pid=p.id) }}" class="title">{{ p.title }}</a>
+    <div class="meta"><span class="badge">{{ p.condition }}</span>{% if p.location %}<span>{{ icon('pin', 13) }} {{ p.location }}</span>{% endif %}</div>
+  </div>
+</div>

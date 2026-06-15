@@ -1,0 +1,16 @@
+{% from 'partials/icons.html' import icon %}
+<fieldset class="switcher">
+  <legend class="switcher__legend">Тема</legend>
+  <label class="switcher__option" title="Светлая">
+    <input class="switcher__input" type="radio" name="theme" value="light" c-option="1">
+    {{ icon('sun', 26) }}
+  </label>
+  <label class="switcher__option" title="Тёмная">
+    <input class="switcher__input" type="radio" name="theme" value="dark" c-option="2">
+    {{ icon('moon', 26) }}
+  </label>
+  <label class="switcher__option" title="Сумерки">
+    <input class="switcher__input" type="radio" name="theme" value="dim" c-option="3">
+    {{ icon('dim', 26) }}
+  </label>
+</fieldset>

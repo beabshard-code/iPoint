@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% block title %}{{ product.title }} — {{ BRAND }}{% endblock %}
+{% block content %}
+<div class="detail">
+  <div class="gallery glass">
+    <div class="main" id="mainImg">
+      {% if product.cover %}<img src="{{ url_for('static', filename='uploads/' + product.cover) }}" alt="{{ product.title }}">
+      {% else %}{{ icon((CATEGORIES | selectattr('slug','equalto',product.category) | map(attribute='icon') | first) or 'box', 110) }}{% endif %}
+    </div>
+    {% if product.images|length > 1 %}
+    <div class="thumbs">
+      {% for img in product.images %}
+      <img src="{{ url_for('static', filename='uploads/' + img) }}" class="{{ 'active' if loop.first }}" data-src="{{ url_for('static', filename='uploads/' + img) }}">
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="detail-info glass">
+    <div class="price-lg">{{ "{:,}".format(product.price).replace(',', ' ') }} ₽</div>
+    <h1>{{ product.title }}</h1>
+    <div class="tags">
+      <span class="badge">{{ product.condition }}</span>
+      <span class="badge">{{ (CATEGORIES | selectattr('slug','equalto',product.category) | map(attribute='name') | first) }}</span>
+      {% if product.location %}<span class="badge">{{ icon('pin', 13) }} {{ product.location }}</span>{% endif %}
+    </div>
+    {% if product.description %}<p class="desc">{{ product.description }}</p>{% endif %}
+
+    <a href="{{ url_for('profile.seller', uid=product.seller.id) }}" class="seller-box">
+      <div class="avatar">{% if product.seller.avatar %}<img src="{{ url_for('static', filename='uploads/' + product.seller.avatar) }}">{% else %}{{ product.seller.initials }}{% endif %}</div>
+      <div><b>{{ product.seller.name }}</b><br><span style="color:var(--c-content-dim);font-size:13px">{{ product.seller.city or 'Продавец' }}</span></div>
+    </a>
+
+    {% if current_user.is_authenticated and current_user.id == product.seller_id %}
+    <div style="display:flex;gap:10px">
+      <a class="btn btn-block" href="{{ url_for('products.edit', pid=product.id) }}">{{ icon('edit', 18) }} Редактировать</a>
+      <form method="post" action="{{ url_for('products.delete', pid=product.id) }}" onsubmit="return confirm('Удалить объявление?')" style="flex:1">
+        <button class="btn btn-danger btn-block" type="submit">{{ icon('trash', 18) }} Удалить</button>
+      </form>
+    </div>
+    {% else %}
+      <a class="btn btn-primary btn-block btn-buy" href="{{ url_for('products.checkout', pid=product.id) }}">{{ icon('cart', 18) }} Купить · {{ "{:,}".format(product.price).replace(',', ' ') }} ₽</a>
+      {% if current_user.is_authenticated %}
+      <button class="btn btn-block fav-btn-lg {{ 'active' if is_fav }}" data-id="{{ product.id }}" id="favLg">{{ icon('heart', 18) }} <span class="fav-label">{{ 'В избранном' if is_fav else 'В избранное' }}</span></button>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% if related %}
+<div class="section-head"><h2>Похожие товары</h2></div>
+<div class="grid">{% for p in related %}{% include 'partials/card.html' %}{% endfor %}</div>
+{% endif %}
+{% endblock %}

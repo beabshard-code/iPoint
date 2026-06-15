@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'partials/icons.html' import icon %}
+{% from 'partials/select.html' import cselect %}
+{% block title %}{{ 'Редактирование' if product else 'Новое объявление' }} — {{ BRAND }}{% endblock %}
+{% block content %}
+<div class="auth-wrap glass" style="max-width:660px">
+  <h1>{{ 'Редактировать объявление' if product else 'Новое объявление' }}</h1>
+  <p class="sub">Заполните данные о товаре.</p>
+  <form method="post" enctype="multipart/form-data">
+    <div class="form-group"><label>Название *</label>
+      <input type="text" name="title" required value="{{ product.title if product else '' }}" placeholder="iPhone 15 Pro 256GB"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Цена, ₽ *</label>
+        <input type="number" name="price" required value="{{ product.price if product else '' }}" placeholder="99990"></div>
+      <div class="form-group"><label>Город</label>
+        <input type="text" name="location" value="{{ product.location if product else '' }}" placeholder="Москва"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Категория *</label>
+        {% set cat_opts = [] %}{% for c in CATEGORIES %}{% set _ = cat_opts.append({'value': c.slug, 'label': c.name}) %}{% endfor %}
+        {{ cselect('category', cat_opts, product.category if product else CATEGORIES[0].slug) }}</div>
+      <div class="form-group"><label>Состояние *</label>
+        {% set cond_opts = [] %}{% for c in conditions %}{% set _ = cond_opts.append({'value': c, 'label': c}) %}{% endfor %}
+        {{ cselect('condition', cond_opts, product.condition if product else conditions[0]) }}</div>
+    </div>
+    <div class="form-group"><label>Описание</label>
+      <textarea name="description" placeholder="Комплектация, состояние, причина продажи…">{{ product.description if product else '' }}</textarea></div>
+    <div class="form-group"><label>Фотографии</label>
+      <label class="dropzone" for="imgInput"><div class="dz-ico">{{ icon('camera', 34) }}</div>Нажмите, чтобы добавить фото</label>
+      <input type="file" id="imgInput" name="images" accept="image/*" multiple hidden>
+      <div class="preview-grid" id="preview"></div>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">{{ 'Сохранить' if product else 'Опубликовать' }}</button>
+  </form>
+</div>
+{% endblock %}

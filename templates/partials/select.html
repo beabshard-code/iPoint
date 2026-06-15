@@ -1,0 +1,19 @@
+{% from 'partials/icons.html' import icon %}
+{% macro cselect(name, options, current='', placeholder='Выберите', autosubmit=false) %}
+{%- set ns = namespace(label=placeholder) -%}
+{%- for opt in options -%}{%- if opt.value == current -%}{%- set ns.label = opt.label -%}{%- endif -%}{%- endfor -%}
+<div class="cselect"{% if autosubmit %} data-autosubmit{% endif %}>
+  <input type="hidden" name="{{ name }}" value="{{ current }}">
+  <button type="button" class="cselect__trigger">
+    <span class="cselect__value">{{ ns.label }}</span>
+    {{ icon('chevron-down', 18) }}
+  </button>
+  <div class="cselect__panel">
+    {% for opt in options %}
+    <div class="cselect__opt {{ 'sel' if opt.value == current }}" data-value="{{ opt.value }}" data-label="{{ opt.label }}">
+      <span>{{ opt.label }}</span>{{ icon('check', 16) }}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endmacro %}

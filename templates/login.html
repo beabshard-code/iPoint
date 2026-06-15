@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Вход — {{ BRAND }}{% endblock %}
+{% block content %}
+<div class="auth-wrap glass">
+  <h1>С возвращением</h1>
+  <p class="sub">Войдите в свой аккаунт {{ BRAND }}.</p>
+  <form method="post">
+    <div class="form-group"><label>Email</label><input type="email" name="email" required placeholder="you@example.com"></div>
+    <div class="form-group"><label>Пароль</label><input type="password" name="password" required placeholder="••••••"></div>
+    <button class="btn btn-primary btn-block" type="submit">Войти</button>
+  </form>
+  <p class="sub" style="margin-top:18px;text-align:center">Нет аккаунта? <a href="{{ url_for('auth.register') }}" style="color:var(--c-action)">Регистрация</a></p>
+  <p class="sub" style="text-align:center;font-size:12px">Демо: store@ipoint.ru / demo1234</p>
+</div>
+{% endblock %}

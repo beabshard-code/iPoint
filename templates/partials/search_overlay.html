@@ -1,0 +1,8 @@
+{% from 'partials/icons.html' import icon %}
+<div class="search-ov" id="searchOv">
+  <form class="search-ov__bar glass" action="{{ url_for('products.index') }}" method="get">
+    {{ icon('search', 20) }}
+    <input type="text" name="q" placeholder="Поиск iPhone, Mac, iPad…" value="{{ request.args.get('q','') }}">
+    <button type="button" class="btn btn-icon" data-close-search>{{ icon('x', 20) }}</button>
+  </form>
+</div>
