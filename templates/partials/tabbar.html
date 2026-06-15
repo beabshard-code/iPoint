@@ -3,10 +3,9 @@
   <a href="{{ url_for('products.index') }}" class="{{ 'active' if request.endpoint == 'products.index' }}">{{ icon('home', 24) }}<span>Каталог</span></a>
   {% if current_user.is_authenticated %}
   <a href="{{ url_for('favorites.list_favorites') }}" class="{{ 'active' if request.endpoint == 'favorites.list_favorites' }}">{{ icon('heart', 24) }}<span>Избранное</span></a>
+  {% if is_admin %}
   <a href="{{ url_for('products.create') }}" class="tab-fab" data-tip="Залить товар">{{ icon('plus', 26) }}</a>
+  {% endif %}
   <a href="{{ url_for('profile.me') }}" class="{{ 'active' if request.endpoint and 'profile' in request.endpoint }}">{{ icon('user', 24) }}<span>Профиль</span></a>
-  {% else %}
-  <a href="{{ url_for('products.create') }}" class="tab-fab">{{ icon('plus', 26) }}</a>
-  <a href="{{ url_for('auth.login') }}" class="{{ 'active' if request.endpoint == 'auth.login' }}">{{ icon('user', 24) }}<span>Войти</span></a>
   {% endif %}
 </nav>

@@ -1,5 +1,6 @@
 (function () {
   var tg = window.Telegram && window.Telegram.WebApp;
+  
   if (tg) {
     tg.ready();
     tg.expand();
@@ -12,6 +13,26 @@
     if (tg.colorScheme === 'dark') {
       var di = document.querySelector('.switcher__input[value="dark"]');
       if (di) { di.checked = true; localStorage.setItem('ipoint-theme', 'dark'); }
+    }
+
+    // Автоматическая авторизация через Telegram WebApp
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      var user = tg.initDataUnsafe.user;
+      var isAuth = document.body.dataset.authenticated === "true";
+      if (!isAuth) {
+        fetch('/api/tg-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.ok) {
+            window.location.reload();
+          }
+        })
+        .catch(function() {});
+      }
     }
   }
 

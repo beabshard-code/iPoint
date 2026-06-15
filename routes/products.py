@@ -4,10 +4,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from models import db, Product, Favorite, CATEGORIES, CONDITIONS
+from config import ADMIN_CHAT_ID
 
 products_bp = Blueprint("products", __name__)
 
 ALLOWED = {"png", "jpg", "jpeg", "webp", "gif"}
+
+
+def _is_admin():
+    return current_user.is_authenticated and current_user.telegram_id == str(ADMIN_CHAT_ID)
 
 
 def _save_images(files):
@@ -76,6 +81,8 @@ def detail(pid):
 @products_bp.route("/sell", methods=["GET", "POST"])
 @login_required
 def create():
+    if not _is_admin():
+        abort(403)
     if request.method == "POST":
         title = request.form.get("title", "").strip()
         price = request.form.get("price", type=int)
@@ -84,7 +91,7 @@ def create():
         description = request.form.get("description", "").strip()
         location = request.form.get("location", "").strip()
         if not title or price is None or price < 0 or not category or not condition:
-            flash("\u0417\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u0435 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0435 \u043f\u043e\u043b\u044f.", "error")
+            flash("Заполните обязательные поля.", "error")
             return render_template("product_form.html", conditions=CONDITIONS, product=None)
         images = _save_images(request.files.getlist("images"))
         product = Product(title=title, price=price, category=category, condition=condition,
@@ -92,7 +99,7 @@ def create():
         product.images = images
         db.session.add(product)
         db.session.commit()
-        flash("\u041e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u043e\u043f\u0443\u0431\u043b\u0438\u043a\u043e\u0432\u0430\u043d\u043e!", "success")
+        flash("Объявление опубликовано!", "success")
         return redirect(url_for("products.detail", pid=product.id))
     return render_template("product_form.html", conditions=CONDITIONS, product=None)
 
@@ -101,7 +108,7 @@ def create():
 @login_required
 def edit(pid):
     product = Product.query.get_or_404(pid)
-    if product.seller_id != current_user.id:
+    if not _is_admin() and product.seller_id != current_user.id:
         abort(403)
     if request.method == "POST":
         product.title = request.form.get("title", product.title).strip()
@@ -114,7 +121,7 @@ def edit(pid):
         if new_imgs:
             product.images = product.images + new_imgs
         db.session.commit()
-        flash("\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0441\u043e\u0445\u0440\u0430\u043d\u0435\u043d\u044b.", "success")
+        flash("Изменения сохранены.", "success")
         return redirect(url_for("products.detail", pid=product.id))
     return render_template("product_form.html", conditions=CONDITIONS, product=product)
 
@@ -123,12 +130,12 @@ def edit(pid):
 @login_required
 def delete(pid):
     product = Product.query.get_or_404(pid)
-    if product.seller_id != current_user.id:
+    if not _is_admin() and product.seller_id != current_user.id:
         abort(403)
     db.session.delete(product)
     db.session.commit()
-    flash("\u041e\u0431\u044a\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u0443\u0434\u0430\u043b\u0435\u043d\u043e.", "success")
-    return redirect(url_for("profile.me"))
+    flash("Объявление удалено.", "success")
+    return redirect(url_for("products.index"))
 
 
 MANAGER_URL = "https://t.me/iPointManager"
@@ -160,7 +167,7 @@ def api_cities():
                 items.append(text)
         return {"cities": items[:8]}
     except Exception:
-        fallback = ["\u041c\u043e\u0441\u043a\u0432\u0430", "\u0421\u0430\u043d\u043a\u0442-\u041f\u0435\u0442\u0435\u0440\u0431\u0443\u0440\u0433", "\u041d\u043e\u0432\u043e\u0441\u0438\u0431\u0438\u0440\u0441\u043a", "\u0415\u043a\u0430\u0442\u0435\u0440\u0438\u043d\u0431\u0443\u0440\u0433", "\u041a\u0430\u0437\u0430\u043d\u044c", "\u041d\u0438\u0436\u043d\u0438\u0439 \u041d\u043e\u0432\u0433\u043e\u0440\u043e\u0434"]
+        fallback = ["Москва", "Санкт-Петербург", "Новосибирск", "Екатеринбург", "Казань", "Нижний Новгород"]
         return {"cities": [c for c in fallback if q in c.lower()][:8]}
 
 
@@ -169,13 +176,13 @@ def api_pickup():
     city = request.args.get("city", "").strip()
     if not city:
         return {"points": []}
-    streets = ["\u043f\u0440. \u041c\u0438\u0440\u0430", "\u0443\u043b. \u041b\u0435\u043d\u0438\u043d\u0430", "\u0443\u043b. \u0421\u043e\u0432\u0435\u0442\u0441\u043a\u0430\u044f", "\u0443\u043b. \u0426\u0435\u043d\u0442\u0440\u0430\u043b\u044c\u043d\u0430\u044f", "\u043f\u0440. \u041f\u043e\u0431\u0435\u0434\u044b"]
+    streets = ["пр. Мира", "ул. Ленина", "ул. Советская", "ул. Центральная", "пр. Победы"]
     points = []
     for i, s in enumerate(streets, 1):
         points.append({
             "code": f"CDEK-{abs(hash(city + s)) % 9000 + 1000}",
-            "name": f"\u0421\u0414\u042d\u041a, {s}, {i * 7}",
+            "name": f"СДЭК, {s}, {i * 7}",
             "address": f"{city}, {s}, {i * 7}",
-            "work": "\u041f\u043d-\u0412\u0441 10:00\u201320:00",
+            "work": "Пн-Вс 10:00–20:00",
         })
     return {"points": points}

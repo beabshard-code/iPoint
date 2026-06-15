@@ -27,12 +27,7 @@
     </div>
     {% if product.description %}<p class="desc">{{ product.description }}</p>{% endif %}
 
-    <a href="{{ url_for('profile.seller', uid=product.seller.id) }}" class="seller-box">
-      <div class="avatar">{% if product.seller.avatar %}<img src="{{ url_for('static', filename='uploads/' + product.seller.avatar) }}">{% else %}{{ product.seller.initials }}{% endif %}</div>
-      <div><b>{{ product.seller.name }}</b><br><span style="color:var(--c-content-dim);font-size:13px">{{ product.seller.city or 'Продавец' }}</span></div>
-    </a>
-
-    {% if current_user.is_authenticated and current_user.id == product.seller_id %}
+    {% if is_admin %}
     <div style="display:flex;gap:10px">
       <a class="btn btn-block" href="{{ url_for('products.edit', pid=product.id) }}">{{ icon('edit', 18) }} Редактировать</a>
       <form method="post" action="{{ url_for('products.delete', pid=product.id) }}" onsubmit="return confirm('Удалить объявление?')" style="flex:1">

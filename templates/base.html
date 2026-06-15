@@ -9,7 +9,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/glass.css') }}">
 </head>
-<body>
+<body data-authenticated="{{ 'true' if current_user.is_authenticated else 'false' }}">
   <nav class="navbar glass container">
     <a class="brand" href="{{ url_for('products.index') }}"><span class="logo">{{ icon('apple', 22) }}</span> {{ BRAND }}</a>
     <form class="nav-search" action="{{ url_for('products.index') }}" method="get">
@@ -21,11 +21,10 @@
       <button class="btn btn-icon nav-search-btn" data-open-search data-tip="Поиск">{{ icon('search', 20) }}</button>
       {% if current_user.is_authenticated %}
       <a class="btn btn-icon desktop-only" href="{{ url_for('favorites.list_favorites') }}" data-tip="Избранное">{{ icon('heart', 20) }}</a>
+      {% if is_admin %}
       <a class="btn btn-primary desktop-only" href="{{ url_for('products.create') }}">{{ icon('plus', 18) }}<span>Залить</span></a>
+      {% endif %}
       <a class="btn desktop-only" href="{{ url_for('profile.me') }}">{{ icon('user', 18) }}<span>{{ current_user.name.split()[0] }}</span></a>
-      {% else %}
-      <a class="btn desktop-only" href="{{ url_for('auth.login') }}">Войти</a>
-      <a class="btn btn-primary desktop-only" href="{{ url_for('auth.register') }}">Регистрация</a>
       {% endif %}
       <label class="switcher-mini" data-tip="Тема">{% include 'partials/switcher.html' %}</label>
     </div>
@@ -43,7 +42,9 @@
     <div class="col">
       <h4>{{ BRAND }}</h4>
       <a href="{{ url_for('products.index') }}">Каталог</a>
+      {% if is_admin %}
       <a href="{{ url_for('products.create') }}">Продать</a>
+      {% endif %}
     </div>
     <div class="col">
       <h4>Категории</h4>

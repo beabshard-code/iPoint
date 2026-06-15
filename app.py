@@ -53,11 +53,39 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
-        return {"CATEGORIES": CATEGORIES, "BRAND": "\u041f\u0435\u0440\u0435\u0445\u0432\u0430\u0442 Store"}
+        from config import ADMIN_CHAT_ID
+        is_admin = False
+        if current_user.is_authenticated and current_user.telegram_id == str(ADMIN_CHAT_ID):
+            is_admin = True
+        return {"CATEGORIES": CATEGORIES, "BRAND": "iPoint Store", "is_admin": is_admin}
 
     @app.errorhandler(404)
     def not_found(e):
         return render_template("404.html"), 404
+
+    @app.route("/api/tg-login", methods=["POST"])
+    def tg_login():
+        from flask_login import login_user
+        data = request.get_json(silent=True) or {}
+        tg_id = str(data.get("id", ""))
+        name = data.get("first_name", "")
+        username = data.get("username", "")
+        if not tg_id or not name:
+            return jsonify({"ok": False, "error": "Missing data"}), 400
+        
+        user = User.query.filter_by(telegram_id=tg_id).first()
+        if not user:
+            user = User(telegram_id=tg_id, name=name, username=username)
+            db.session.add(user)
+            db.session.commit()
+        else:
+            if name != user.name or username != user.username:
+                user.name = name
+                user.username = username
+                db.session.commit()
+                
+        login_user(user, remember=True)
+        return jsonify({"ok": True})
 
     @app.route("/api/purchase-log", methods=["POST"])
     def purchase_log():
@@ -91,6 +119,21 @@ def create_app():
 def seed_data():
     if User.query.first():
         return
+    from config import ADMIN_CHAT_ID
+    demo = User(
+        name="iPoint Store Admin",
+        telegram_id=str(ADMIN_CHAT_ID) if ADMIN_CHAT_ID else "8229778449",
+        city="Москва",
+        phone="+7 900 000-00-00",
+        bio="Администратор iPoint Store.",
+    )
+    demo.set_password(None)
+    db.session.add(demo)
+    db.session.commit()
+
+
+def seed_data_old():
+    pass
     demo = User(
         name="\u041f\u0435\u0440\u0435\u0445\u0432\u0430\u0442 Store",
         email="store@ipoint.ru",
