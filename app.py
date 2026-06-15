@@ -130,7 +130,21 @@ def run_bot():
     asyncio.set_event_loop(bot_loop)
     bot_application = create_bot_app()
     logger.info("\U0001f916 Telegram bot starting...")
-    bot_loop.run_until_complete(bot_application.run_polling(drop_pending_updates=True, close_loop=False))
+
+    async def _run():
+        await bot_application.initialize()
+        await bot_application.updater.start_polling(drop_pending_updates=True)
+        await bot_application.start()
+        logger.info("\U0001f916 Telegram bot is running")
+        while True:
+            await asyncio.sleep(3600)
+
+    try:
+        bot_loop.run_until_complete(_run())
+    except (KeyboardInterrupt, SystemExit):
+        bot_loop.run_until_complete(bot_application.updater.stop())
+        bot_loop.run_until_complete(bot_application.stop())
+        bot_loop.run_until_complete(bot_application.shutdown())
 
 
 app = create_app()
