@@ -11,13 +11,17 @@
       <div class="delivery-opts">
         <label class="delivery-opt active" data-method="cdek">
           <input type="radio" name="method" value="cdek" checked hidden>
-          <span class="do-ic">{{ icon('truck', 22) }}</span>
-          <span class="do-txt"><b>СДЭК — пункт выдачи</b><small>Доставка 2–5 дней</small></span>
+          <span class="do-ic">
+            {{ icon('truck', 22) }}
+          </span>
+          <span class="do-txt"><b>СДЭК — доставка</b><small>Доставка СДЭК до двери или пункта выдачи</small></span>
           <span class="do-check">{{ icon('check', 16) }}</span>
         </label>
         <label class="delivery-opt" data-method="pickup">
           <input type="radio" name="method" value="pickup" hidden>
-          <span class="do-ic">{{ icon('store', 22) }}</span>
+          <span class="do-ic">
+            {{ icon('store', 22) }}
+          </span>
           <span class="do-txt"><b>Самовывоз</b><small>Из магазина в Москве</small></span>
           <span class="do-check">{{ icon('check', 16) }}</span>
         </label>
@@ -25,17 +29,15 @@
     </div>
 
     <div class="co-step glass" id="cityStep">
-      <div class="co-step__head"><span class="co-num">2</span><h3>Город и пункт выдачи</h3></div>
-      <div class="form-group">
-        <label>Город</label>
-        <div class="ac" id="cityAc">
-          <div class="ac__field">{{ icon('pin', 18) }}<input type="text" id="cityInput" placeholder="Начните вводить город…" autocomplete="off"></div>
-          <div class="ac__panel" id="cityPanel"></div>
+      <div class="co-step__head"><span class="co-num">2</span><h3>Адрес доставки</h3></div>
+      <div class="form-group" id="addressGroup">
+        <label id="addressLabel">Адрес ПВЗ или вашей квартиры (СДЭК)</label>
+        <div class="ac">
+          <div class="ac__field">
+            {{ icon('pin', 18) }}
+            <input type="text" id="addressInput" placeholder="Введите адрес доставки..." autocomplete="off">
+          </div>
         </div>
-      </div>
-      <div class="form-group" id="pvzGroup" style="display:none">
-        <label>Пункт выдачи СДЭК</label>
-        <div class="pvz-list" id="pvzList"></div>
       </div>
     </div>
 
@@ -66,8 +68,6 @@
     </div>
   </aside>
 </div>
-
-<a class="manager-link" href="https://t.me/iPointManager" target="_blank" rel="noopener" hidden id="managerLink"></a>
 {% endblock %}
 {% block scripts %}
 <script>
@@ -90,82 +90,53 @@
   phoneEl.addEventListener('focus', () => { if (!phoneEl.value) phoneEl.value = '+7 '; });
 
   const opts = document.querySelectorAll('.delivery-opt');
-  const cityStep = document.getElementById('cityStep');
-  const pvzGroup = document.getElementById('pvzGroup');
+  const addressLabel = document.getElementById('addressLabel');
+  const addressInput = document.getElementById('addressInput');
   let method = 'cdek';
+
   opts.forEach(o => o.addEventListener('click', () => {
     opts.forEach(x => x.classList.remove('active'));
     o.classList.add('active');
     o.querySelector('input').checked = true;
     method = o.dataset.method;
-    pvzGroup.style.display = 'none';
-    document.getElementById('pvzList').innerHTML = '';
+    if (method === 'cdek') {
+      addressLabel.textContent = 'Адрес ПВЗ или вашей квартиры (СДЭК)';
+      addressInput.placeholder = 'Введите адрес доставки...';
+    } else {
+      addressLabel.textContent = 'Адрес для самовывоза в Москве';
+      addressInput.placeholder = 'Например: Москва, ул. Ленина, д. 5';
+    }
   }));
-
-  const cityInput = document.getElementById('cityInput');
-  const cityPanel = document.getElementById('cityPanel');
-  let selectedCity = '';
-  let t;
-  cityInput.addEventListener('input', () => {
-    selectedCity = '';
-    clearTimeout(t);
-    const q = cityInput.value.trim();
-    if (q.length < 2) { cityPanel.classList.remove('open'); return; }
-    t = setTimeout(() => {
-      fetch('/api/cities?q=' + encodeURIComponent(q)).then(r => r.json()).then(d => {
-        cityPanel.innerHTML = '';
-        if (!d.cities.length) { cityPanel.classList.remove('open'); return; }
-        d.cities.forEach(c => {
-          const item = document.createElement('div');
-          item.className = 'ac__opt';
-          item.textContent = c;
-          item.addEventListener('click', () => {
-            cityInput.value = c; selectedCity = c;
-            cityPanel.classList.remove('open');
-            if (method === 'cdek') loadPvz(c);
-          });
-          cityPanel.appendChild(item);
-        });
-        cityPanel.classList.add('open');
-      });
-    }, 300);
-  });
-  document.addEventListener('click', e => { if (!e.target.closest('#cityAc')) cityPanel.classList.remove('open'); });
-
-  function loadPvz(city){
-    if (method !== 'cdek') return;
-    fetch('/api/pickup?city=' + encodeURIComponent(city)).then(r => r.json()).then(d => {
-      const list = document.getElementById('pvzList');
-      list.innerHTML = '';
-      d.points.forEach((p, i) => {
-        const el = document.createElement('label');
-        el.className = 'pvz-item' + (i === 0 ? ' active' : '');
-        el.innerHTML = '<input type="radio" name="pvz" value="' + p.code + '" ' + (i===0?'checked':'') + ' hidden><div><b>' + p.name + '</b><small>' + p.address + ' · ' + p.work + '</small></div>';
-        el.addEventListener('click', () => {
-          list.querySelectorAll('.pvz-item').forEach(x => x.classList.remove('active'));
-          el.classList.add('active'); el.querySelector('input').checked = true;
-        });
-        list.appendChild(el);
-      });
-      pvzGroup.style.display = d.points.length ? 'flex' : 'none';
-    });
-  }
 
   document.getElementById('payBtn').addEventListener('click', () => {
     const name = document.getElementById('buyerName').value.trim().replace(/\s+/g, ' ');
     const phone = document.getElementById('buyerPhone').value.trim();
     const email = document.getElementById('buyerEmail').value.trim();
+    const address = addressInput.value.trim();
     const phoneDigits = phone.replace(/\D/g, '');
-    if (method === 'cdek' && !selectedCity) { window.toast('Выберите город доставки', 'error'); return; }
+
+    if (!address) { window.toast('Введите адрес доставки', 'error'); return; }
     const nameParts = name.split(' ').filter(Boolean);
     if (nameParts.length !== 2) { window.toast('Укажите имя и фамилию (два слова)', 'error'); return; }
     if (phoneDigits.length !== 11) { window.toast('Введите телефон полностью', 'error'); return; }
     if (!email || !email.includes('@') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { window.toast('Введите корректный email', 'error'); return; }
+
+    let tg = window.Telegram && window.Telegram.WebApp;
+    let username = '';
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      username = tg.initDataUnsafe.user.username ? '@' + tg.initDataUnsafe.user.username : '';
+    }
+
+    var buyerDetails = name + ' / ' + phone + ' / ' + email;
+    if (username) buyerDetails += ' / ' + username;
+    buyerDetails += ' \n📍 Адрес: ' + address + ' (' + (method === 'cdek' ? 'СДЭК' : 'Самовывоз') + ')';
+
     if (window.sendPurchaseLog) {
       window.sendPurchaseLog(
         '{{ product.title }}',
         {{ product.price }},
-        name + ' / ' + phone + ' / ' + email
+        buyerDetails,
+        {{ product.id }}
       );
     }
     window.toast('Перенаправляем к менеджеру…', 'success');
