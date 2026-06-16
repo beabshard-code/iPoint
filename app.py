@@ -5,7 +5,7 @@ import logging
 from flask import Flask, render_template, request, jsonify, abort
 from flask_login import LoginManager, current_user
 from models import db, User, Product, CATEGORIES
-from config import BOT_TOKEN, SUPER_ADMINS
+from config import BOT_TOKEN, SUPER_ADMINS, WEBAPP_URL
 
 logging.basicConfig(
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -112,25 +112,45 @@ def create_app():
 
     @app.route("/api/purchase-log", methods=["POST"])
     def purchase_log():
-        global bot_application
+        import html as _html
+        import urllib.request
+        import urllib.parse
+        from datetime import datetime
+        from config import WEBAPP_URL
         data = request.get_json(silent=True) or {}
         title = data.get("title", "Unknown")
         price = data.get("price", 0)
         user_info = data.get("user", "Anonymous")
         pid = data.get("id", 0)
-        if bot_application and bot_application.bot:
-            from bot import send_purchase_log
-            loop = bot_loop
-            if loop and loop.is_running():
-                asyncio.run_coroutine_threadsafe(
-                    send_purchase_log(bot_application.bot, title, price, user_info, pid),
-                    loop,
+        if not BOT_TOKEN or BOT_TOKEN == "YOUR_BOT_TOKEN_HERE":
+            return jsonify({"ok": True})
+        now = datetime.now().strftime("%d.%m.%Y %H:%M")
+        prod_url = f"{WEBAPP_URL}/product/{pid}"
+        try:
+            price_str = f"{int(price):,}".replace(",", ".") + "\u20bd"
+        except (TypeError, ValueError):
+            price_str = str(price)
+        text = (
+            "\U0001f6d2 <b>\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u043a\u0430\u0437!</b>\n\n"
+            f"\U0001f4e6 \u0422\u043e\u0432\u0430\u0440: <a href=\"{prod_url}\"><b>{_html.escape(str(title))}</b></a>\n"
+            f"\U0001f4b0 \u0421\u0443\u043c\u043c\u0430: <b>{price_str}</b>\n"
+            f"\U0001f464 \u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c: {_html.escape(str(user_info))}\n"
+            f"\U0001f552 \u0414\u0430\u0442\u0430: {now}"
+        ).encode("utf-8", "ignore").decode("utf-8")
+        for admin_id in SUPER_ADMINS:
+            try:
+                payload = urllib.parse.urlencode({
+                    "chat_id": admin_id,
+                    "text": text,
+                    "parse_mode": "HTML",
+                }).encode("utf-8")
+                req = urllib.request.Request(
+                    f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                    data=payload,
                 )
-            else:
-                try:
-                    asyncio.run(send_purchase_log(bot_application.bot, title, price, user_info, pid))
-                except RuntimeError:
-                    pass
+                urllib.request.urlopen(req, timeout=5)
+            except Exception as e:
+                logger.error(f"Failed to send purchase log to {admin_id}: {e}")
         return jsonify({"ok": True})
 
     with app.app_context():
