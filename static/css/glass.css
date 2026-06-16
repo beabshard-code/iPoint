@@ -330,7 +330,7 @@ textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
 .preview-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; }
 
 /* ===== FOOTER ===== */
-.footer { margin: 56px auto 26px; padding: 32px; display: flex; flex-wrap: wrap; gap: 26px; justify-content: space-between; }
+.footer { margin: 56px auto 26px; padding: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; justify-items: center; text-align: center; }
 .footer .col h4 { font-size: 14px; margin: 0 0 12px; }
 .footer .col a { display: block; color: var(--c-content-dim); font-size: 13px; margin-bottom: 7px; transition: .2s; }
 .footer .col a:hover { color: var(--c-action); }

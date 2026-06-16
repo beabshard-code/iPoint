@@ -40,18 +40,15 @@
 
   <footer class="footer glass container">
     <div class="col">
-      <h4>{{ BRAND }}</h4>
-      {% if is_admin %}
-      <a href="{{ url_for('products.create') }}">Продать</a>
-      {% endif %}
-    </div>
-    <div class="col">
       <h4>Категории</h4>
       {% for c in CATEGORIES[:4] %}<a href="{{ url_for('products.index', category=c.slug) }}">{{ c.name }}</a>{% endfor %}
     </div>
     <div class="col">
       <h4>Помощь</h4>
       <a href="https://t.me/iPointManager" target="_blank">Менеджер</a>
+      {% if is_admin %}
+      <a href="{{ url_for('products.create') }}">Продать</a>
+      {% endif %}
     </div>
     <div class="bottom">© 2026 {{ BRAND }}. Не является официальным партнёром Apple Inc.</div>
   </footer>
