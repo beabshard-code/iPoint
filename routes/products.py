@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from models import db, Product, Favorite, CATEGORIES, CONDITIONS
-from config import ADMIN_CHAT_ID
+from config import ADMIN_CHAT_ID, SUPER_ADMINS
 
 products_bp = Blueprint("products", __name__)
 
@@ -12,7 +12,13 @@ ALLOWED = {"png", "jpg", "jpeg", "webp", "gif"}
 
 
 def _is_admin():
-    return current_user.is_authenticated and current_user.telegram_id == str(ADMIN_CHAT_ID)
+    if not current_user.is_authenticated:
+        return False
+    try:
+        t_id = int(current_user.telegram_id) if current_user.telegram_id else 0
+    except (TypeError, ValueError):
+        t_id = 0
+    return t_id in SUPER_ADMINS or bool(getattr(current_user, "can_sell", False))
 
 
 def _save_images(files):

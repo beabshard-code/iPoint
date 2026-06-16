@@ -8,7 +8,9 @@
   <h1>iPoint <span>Store</span></h1>
   <p>Магазин техники Apple — покупай быстро, безопасно и выгодно.</p>
   <div class="hero-actions">
+    {% if is_admin %}
     <a class="btn btn-primary" href="{{ url_for('products.create') }}">{{ icon('plus', 18) }} Разместить товар</a>
+    {% endif %}
     <a class="btn" href="https://t.me/iPointManager" target="_blank">{{ icon('telegram', 18) }} Написать менеджеру</a>
   </div>
 </section>
