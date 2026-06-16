@@ -9,12 +9,12 @@ from config import BOT_TOKEN, SUPER_ADMINS, WEBAPP_URL, BOT_USERNAME
 
 logger = logging.getLogger(__name__)
 
-# Поддержка Persistent Disk на Render
-P_DIR = "/opt/render/project/src/data"
-if os.path.exists(P_DIR):
-    DB_PATH = os.path.join(P_DIR, "ipoint.db")
-else:
-    DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "ipoint.db")
+# Постоянное хранилище данных (то же, что в app.py)
+_DATA_DIR = os.environ.get("IPOINT_DATA_DIR", "").strip()
+if not _DATA_DIR:
+    _P_DIR = "/opt/render/project/src/data"
+    _DATA_DIR = _P_DIR if os.path.exists(_P_DIR) else os.path.abspath(os.path.dirname(__file__))
+DB_PATH = os.path.join(_DATA_DIR, "ipoint.db")
 
 BOT_LINK = f"https://t.me/{BOT_USERNAME}/app?startapp="
 

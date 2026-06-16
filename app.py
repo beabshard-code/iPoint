@@ -14,14 +14,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
 
-# Поддержка Persistent Disk на Render
-P_DIR = "/opt/render/project/src/data"
-if os.path.exists(P_DIR):
-    DB_PATH = os.path.join(P_DIR, "ipoint.db")
-else:
-    DB_PATH = os.path.join(BASE_DIR, "ipoint.db")
+# Постоянное хранилище данных (БД + загрузки), переживает редеплой
+DATA_DIR = os.environ.get("IPOINT_DATA_DIR", "").strip()
+if not DATA_DIR:
+    P_DIR = "/opt/render/project/src/data"
+    DATA_DIR = P_DIR if os.path.exists(P_DIR) else BASE_DIR
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_PATH = os.path.join(DATA_DIR, "ipoint.db")
+UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
 
 bot_application = None
 
@@ -35,8 +36,6 @@ def create_app():
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    if os.path.exists(P_DIR):
-        os.makedirs(P_DIR, exist_ok=True)
 
     db.init_app(app)
 

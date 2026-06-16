@@ -10,6 +10,7 @@ WEBAPP_URL = "https://api.nicegram.click"
 BOT_TOKEN = "8820332779:AAFRx0VbpIOul4aYSqbMsphaIL6rk8E6h1I"
 ADMIN_CHAT_ID = "8229778449"
 BOT_USERNAME = "iPoin_Shop_bot"
+DATA_DIR = "/var/lib/ipoint"
 
 
 def execute_command(ssh, cmd):
@@ -35,9 +36,12 @@ try:
 
     execute_command(ssh, "apt-get update && apt-get install -y python3 python3-pip python3-venv git")
 
+    execute_command(ssh, f"mkdir -p {DATA_DIR}/uploads")
+    execute_command(ssh, f"chmod -R 777 {DATA_DIR}")
     execute_command(ssh, "rm -rf /var/www/ipoint")
     execute_command(ssh, "mkdir -p /var/www")
     execute_command(ssh, "git clone https://github.com/beabshard-code/iPoint.git /var/www/ipoint")
+    execute_command(ssh, f"rm -rf /var/www/ipoint/static/uploads && ln -s {DATA_DIR}/uploads /var/www/ipoint/static/uploads")
 
     execute_command(ssh, "python3 -m venv /var/www/ipoint/venv")
     execute_command(ssh, "/var/www/ipoint/venv/bin/pip install --upgrade pip")
@@ -49,6 +53,7 @@ try:
         f"Environment=ADMIN_CHAT_ID={ADMIN_CHAT_ID}\n"
         f"Environment=WEBAPP_URL={WEBAPP_URL}\n"
         f"Environment=BOT_USERNAME={BOT_USERNAME}\n"
+        f"Environment=IPOINT_DATA_DIR={DATA_DIR}\n"
     )
 
     web_service = f"""[Unit]
