@@ -3,7 +3,7 @@ import asyncio
 import threading
 import logging
 from flask import Flask, render_template, request, jsonify
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from models import db, User, Product, CATEGORIES
 from config import BOT_TOKEN
 
