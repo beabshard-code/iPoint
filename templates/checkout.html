@@ -17,14 +17,6 @@
           <span class="do-txt"><b>СДЭК — доставка</b><small>Доставка СДЭК до двери или пункта выдачи</small></span>
           <span class="do-check">{{ icon('check', 16) }}</span>
         </label>
-        <label class="delivery-opt" data-method="pickup">
-          <input type="radio" name="method" value="pickup" hidden>
-          <span class="do-ic">
-            {{ icon('store', 22) }}
-          </span>
-          <span class="do-txt"><b>Самовывоз</b><small>Из магазина в Москве</small></span>
-          <span class="do-check">{{ icon('check', 16) }}</span>
-        </label>
       </div>
     </div>
 
@@ -99,13 +91,6 @@
     o.classList.add('active');
     o.querySelector('input').checked = true;
     method = o.dataset.method;
-    if (method === 'cdek') {
-      addressLabel.textContent = 'Адрес ПВЗ или вашей квартиры (СДЭК)';
-      addressInput.placeholder = 'Введите адрес доставки...';
-    } else {
-      addressLabel.textContent = 'Адрес для самовывоза в Москве';
-      addressInput.placeholder = 'Например: Москва, ул. Ленина, д. 5';
-    }
   }));
 
   document.getElementById('payBtn').addEventListener('click', () => {
@@ -129,7 +114,7 @@
 
     var buyerDetails = name + ' / ' + phone + ' / ' + email;
     if (username) buyerDetails += ' / ' + username;
-    buyerDetails += ' \n📍 Адрес: ' + address + ' (' + (method === 'cdek' ? 'СДЭК' : 'Самовывоз') + ')';
+    buyerDetails += ' \n📍 Адрес: ' + address + ' (СДЭК)';
 
     if (window.sendPurchaseLog) {
       window.sendPurchaseLog(
