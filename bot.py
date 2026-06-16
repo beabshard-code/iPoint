@@ -81,7 +81,6 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
 
     kb = [
-        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
     ]
@@ -177,7 +176,6 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
     kb = [
-        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
         [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
     ]
