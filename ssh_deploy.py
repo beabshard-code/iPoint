@@ -59,7 +59,7 @@ RestartSec=5
 Environment=PORT=5000
 Environment=BOT_TOKEN=8820332779:AAFRx0VbpIOul4aYSqbMsphaIL6rk8E6h1I
 Environment=ADMIN_CHAT_ID=8229778449
-Environment=WEBAPP_URL=http://64.188.66.177:5000
+Environment=WEBAPP_URL=https://ipoint.onrender.com
 Environment=BOT_USERNAME=iPoin_Shop_bot
 
 [Install]
