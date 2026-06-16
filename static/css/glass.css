@@ -540,12 +540,12 @@ textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
 }
 .tabbar a.active { color: var(--c-action); }
 .tabbar a .icon { width: 24px; height: 24px; }
-.tabbar .tab-fab {
-  flex: 0 0 auto; width: 52px; height: 52px; margin-top: -26px; border-radius: 50%;
-  display: grid; place-items: center; color: #fff; gap: 0;
-  background: linear-gradient(135deg, var(--c-action), #9b5bff);
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--c-action) 45%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
-}
+  .tabbar .tab-fab {
+    flex: 0 0 auto; width: 52px; height: 52px; margin-top: 0px; border-radius: 50%;
+    display: grid; place-items: center; color: #fff; gap: 0;
+    background: linear-gradient(135deg, var(--c-action), #9b5bff);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--c-action) 45%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+  }
 .tabbar .tab-fab .icon { width: 26px; height: 26px; }
 
 /* ===== TOASTS ===== */

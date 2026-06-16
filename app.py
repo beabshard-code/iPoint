@@ -2,7 +2,7 @@ import os
 import asyncio
 import threading
 import logging
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, abort
 from flask_login import LoginManager, current_user
 from models import db, User, Product, CATEGORIES
 from config import BOT_TOKEN
@@ -32,14 +32,15 @@ def create_app():
     db.init_app(app)
 
     login_manager = LoginManager()
-    login_manager.login_view = "auth.login"
-    login_manager.login_message = "\u0412\u043e\u0439\u0434\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u043f\u0440\u043e\u0434\u043e\u043b\u0436\u0438\u0442\u044c."
-    login_manager.login_message_category = "info"
+    login_manager.login_view = "products.index"
     login_manager.init_app(app)
 
     @login_manager.user_loader
     def load_user(user_id):
-        return db.session.get(User, int(user_id))
+        user = db.session.get(User, int(user_id))
+        if user and user.is_banned:
+            return None
+        return user
 
     from routes.auth import auth_bp
     from routes.products import products_bp
@@ -51,12 +52,20 @@ def create_app():
     app.register_blueprint(profile_bp)
     app.register_blueprint(favorites_bp)
 
+    @app.before_request
+    def check_ban():
+        if current_user.is_authenticated and current_user.is_banned:
+            from flask_login import logout_user
+            logout_user()
+            abort(403)
+
     @app.context_processor
     def inject_globals():
         from config import ADMIN_CHAT_ID
         is_admin = False
-        if current_user.is_authenticated and current_user.telegram_id == str(ADMIN_CHAT_ID):
-            is_admin = True
+        if current_user.is_authenticated:
+            if current_user.telegram_id == str(ADMIN_CHAT_ID) or current_user.can_sell:
+                is_admin = True
         return {"CATEGORIES": CATEGORIES, "BRAND": "iPoint Store", "is_admin": is_admin}
 
     @app.errorhandler(404)
@@ -79,6 +88,8 @@ def create_app():
             db.session.add(user)
             db.session.commit()
         else:
+            if user.is_banned:
+                return jsonify({"ok": False, "error": "User is banned"}), 403
             if name != user.name or username != user.username:
                 user.name = name
                 user.username = username
@@ -94,17 +105,18 @@ def create_app():
         title = data.get("title", "Unknown")
         price = data.get("price", 0)
         user_info = data.get("user", "Anonymous")
+        pid = data.get("id", 0)
         if bot_application and bot_application.bot:
             from bot import send_purchase_log
             loop = bot_loop
             if loop and loop.is_running():
                 asyncio.run_coroutine_threadsafe(
-                    send_purchase_log(bot_application.bot, title, price, user_info),
+                    send_purchase_log(bot_application.bot, title, price, user_info, pid),
                     loop,
                 )
             else:
                 try:
-                    asyncio.run(send_purchase_log(bot_application.bot, title, price, user_info))
+                    asyncio.run(send_purchase_log(bot_application.bot, title, price, user_info, pid))
                 except RuntimeError:
                     pass
         return jsonify({"ok": True})
@@ -123,9 +135,9 @@ def seed_data():
     demo = User(
         name="iPoint Store Admin",
         telegram_id=str(ADMIN_CHAT_ID) if ADMIN_CHAT_ID else "8229778449",
-        city="Москва",
+        city="\u041c\u043e\u0441\u043a\u0432\u0430",
         phone="+7 900 000-00-00",
-        bio="Администратор iPoint Store.",
+        bio="\u0410\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 iPoint Store.",
     )
     demo.set_password(None)
     db.session.add(demo)
@@ -134,34 +146,10 @@ def seed_data():
 
 def seed_data_old():
     pass
-    demo = User(
-        name="\u041f\u0435\u0440\u0435\u0445\u0432\u0430\u0442 Store",
-        email="store@ipoint.ru",
-        city="\u041c\u043e\u0441\u043a\u0432\u0430",
-        phone="+7 900 000-00-00",
-        bio="\u041c\u0430\u0433\u0430\u0437\u0438\u043d \u0442\u0435\u0445\u043d\u0438\u043a\u0438 Apple. \u0413\u0430\u0440\u0430\u043d\u0442\u0438\u044f \u043d\u0430 \u0432\u0441\u0451.",
-    )
-    demo.set_password("demo1234")
-    db.session.add(demo)
-    db.session.commit()
-
-    items = [
-        ("iPhone 15 Pro Max 256GB", 119990, "iphone", "\u041a\u0430\u043a \u043d\u043e\u0432\u044b\u0439", "\u0422\u0438\u0442\u0430\u043d, \u043f\u043e\u043b\u043d\u044b\u0439 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-        ("MacBook Pro 14 M3 Pro", 209990, "mac", "\u041d\u043e\u0432\u044b\u0439", "18GB / 512GB SSD.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-        ("iPad Air 11 M2 128GB", 64990, "ipad", "\u041d\u043e\u0432\u044b\u0439", "Wi-Fi, Space Gray.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-        ("Apple Watch Ultra 2", 84990, "watch", "\u041a\u0430\u043a \u043d\u043e\u0432\u044b\u0439", "Titanium, Alpine Loop.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-        ("AirPods Pro 2 USB-C", 19990, "airpods", "\u041d\u043e\u0432\u044b\u0439", "\u0410\u043a\u0442\u0438\u0432\u043d\u043e\u0435 \u0448\u0443\u043c\u043e\u043f\u043e\u0434\u0430\u0432\u043b\u0435\u043d\u0438\u0435.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-        ("iPhone 14 128GB", 59990, "iphone", "\u0425\u043e\u0440\u043e\u0448\u0435\u0435", "\u0410\u043a\u043a\u0443\u043c\u0443\u043b\u044f\u0442\u043e\u0440 92%.", "\u041c\u043e\u0441\u043a\u0432\u0430"),
-    ]
-    for title, price, cat, cond, desc, loc in items:
-        db.session.add(Product(
-            title=title, price=price, category=cat, condition=cond,
-            description=desc, location=loc, seller_id=demo.id, images_raw="[]",
-        ))
-    db.session.commit()
 
 
 bot_loop = None
+
 
 def run_bot():
     global bot_application, bot_loop
@@ -172,13 +160,13 @@ def run_bot():
     bot_loop = asyncio.new_event_loop()
     asyncio.set_event_loop(bot_loop)
     bot_application = create_bot_app()
-    logger.info("\U0001f916 Telegram bot starting...")
+    logger.info("\u1f916 Telegram bot starting...")
 
     async def _run():
         await bot_application.initialize()
         await bot_application.updater.start_polling(drop_pending_updates=True)
         await bot_application.start()
-        logger.info("\U0001f916 Telegram bot is running")
+        logger.info("\u1f916 Telegram bot is running")
         while True:
             await asyncio.sleep(3600)
 
@@ -196,5 +184,5 @@ if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot, daemon=True)
     bot_thread.start()
     port = int(os.environ.get("PORT", 5000))
-    logger.info(f"\U0001f680 Flask server starting on http://localhost:{port}")
+    logger.info(f"\u1f680 Flask server starting on http://localhost:{port}")
     app.run(debug=False, host="0.0.0.0", port=port, use_reloader=False)

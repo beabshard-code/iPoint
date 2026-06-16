@@ -19,6 +19,8 @@ class User(UserMixin, db.Model):
     bio = db.Column(db.String(500), default="")
     city = db.Column(db.String(80), default="")
     phone = db.Column(db.String(40), default="")
+    is_banned = db.Column(db.Boolean, default=False)
+    can_sell = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     products = db.relationship("Product", backref="seller", lazy=True, cascade="all, delete-orphan")
