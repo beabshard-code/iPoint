@@ -10,6 +10,16 @@
       if (tp.text_color) document.documentElement.style.setProperty('--tg-text', tp.text_color);
     }
     document.body.classList.add('tg-webapp');
+
+    var startParam = tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+    if (startParam && /^\d+$/.test(startParam)) {
+      var target = '/product/' + startParam;
+      if (window.location.pathname !== target) {
+        window.location.replace(target);
+        return;
+      }
+    }
+
     if (tg.colorScheme === 'dark') {
       var di = document.querySelector('.switcher__input[value="dark"]');
       if (di) { di.checked = true; localStorage.setItem('ipoint-theme', 'dark'); }
