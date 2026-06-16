@@ -57,10 +57,10 @@ ExecStart=/var/www/ipoint/venv/bin/python app.py
 Restart=always
 RestartSec=5
 Environment=PORT=5000
-Environment=BOT_TOKEN=8785233686:AAFe77G_0jSc4m8Gf2mTR2ANRg95phS_9Pk
+Environment=BOT_TOKEN=8820332779:AAFRx0VbpIOul4aYSqbMsphaIL6rk8E6h1I
 Environment=ADMIN_CHAT_ID=8229778449
 Environment=WEBAPP_URL=http://64.188.66.177:5000
-Environment=BOT_USERNAME=perehvat_store_bot
+Environment=BOT_USERNAME=iPoin_Shop_bot
 
 [Install]
 WantedBy=multi-user.target
