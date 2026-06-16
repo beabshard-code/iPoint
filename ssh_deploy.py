@@ -6,7 +6,7 @@ host = "64.188.66.177"
 user = "root"
 password = "s081109g"
 
-WEBAPP_URL = "https://api.nicegram.click"
+WEBAPP_URL = "https://ipointshop.xyz"
 BOT_TOKEN = "8820332779:AAFRx0VbpIOul4aYSqbMsphaIL6rk8E6h1I"
 ADMIN_CHAT_ID = "8229778449"
 BOT_USERNAME = "iPoin_Shop_bot"
