@@ -5,12 +5,18 @@ import os
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-from config import BOT_TOKEN, SUPER_ADMINS, WEBAPP_URL
+from config import BOT_TOKEN, SUPER_ADMINS, WEBAPP_URL, BOT_USERNAME
 
 logger = logging.getLogger(__name__)
 
-BOT_LINK = "https://t.me/perehvat_store_bot/app?startapp="
-DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "ipoint.db")
+# Поддержка Persistent Disk на Render
+P_DIR = "/opt/render/project/src/data"
+if os.path.exists(P_DIR):
+    DB_PATH = os.path.join(P_DIR, "ipoint.db")
+else:
+    DB_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), "ipoint.db")
+
+BOT_LINK = f"https://t.me/{BOT_USERNAME}/app?startapp="
 
 def _link(sid):
     return f"{BOT_LINK}{sid}"
@@ -72,7 +78,6 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Вы заблокированы в iPoint Store.")
         return
 
-    # Чистим имя пользователя от суррогатных символов на всякий случай
     first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
 
     kb = [
@@ -246,7 +251,6 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def send_purchase_log(app_bot, product_title, product_price, user_info, product_id):
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
     prod_url = f"{WEBAPP_URL}/product/{product_id}"
-    # Полностью чистим строку от суррогатных символов перед отправкой
     raw_text = (
         "🛒 <b>Новый заказ!</b>\n\n"
         f"📦 Товар: <a href=\"{prod_url}\"><b>{_html.escape(product_title)}</b></a>\n"
