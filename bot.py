@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-from config import BOT_TOKEN, ADMIN_CHAT_ID, WEBAPP_URL
+from config import BOT_TOKEN, SUPER_ADMINS, WEBAPP_URL
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,12 @@ def _price(p):
 
 # Категории для бота
 CATEGORIES_MAP = {
-    "iphone": {"emoji": "\U0001f4f1", "label": "iPhone"},
-    "ipad": {"emoji": "\U0001f4f2", "label": "iPad"},
-    "mac": {"emoji": "\u1f4bb", "label": "Mac"},
+    "iphone": {"emoji": "\u201a", "label": "iPhone"},
+    "ipad": {"emoji": "\u201e", "label": "iPad"},
+    "mac": {"emoji": "\u2026", "label": "Mac"},
     "watch": {"emoji": "\u231a", "label": "Apple Watch"},
-    "airpods": {"emoji": "\U0001f3a7", "label": "AirPods"},
-    "accessories": {"emoji": "\U0001f50c", "label": "\u0410\u043a\u0441\u0435\u0441\u0441\u0443\u0430\u0440\u044b"}
+    "airpods": {"emoji": "\u2020", "label": "AirPods"},
+    "accessories": {"emoji": "\u2021", "label": "\u0410\u043a\u0441\u0435\u0441\u0441\u0443\u0430\u0440\u044b"}
 }
 
 def get_db_products(category_slug=None):
@@ -74,13 +74,13 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     kb = [
-        [InlineKeyboardButton("\U0001f4e6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
-        [InlineKeyboardButton("\U0001f6cd\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("\U0001f4ac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("\ud83d\udce6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
+        [InlineKeyboardButton("\ud83d\udecb\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
     ]
     await update.message.reply_text(
-        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \U0001f44b\n\n"
-        "\u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
+        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \ud83d\udc4b\n\n"
+        "\ud83c\udf4f \u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
         "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
@@ -108,7 +108,7 @@ async def cb_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )])
     kb.append([InlineKeyboardButton("\u25c0\ufe0f \u041d\u0430\u0437\u0430\u0434", callback_data="back_start")])
     await query.edit_message_text(
-        "\U0001f4e6 <b>\u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438</b>\n\n"
+        "\ud83d\udce6 <b>\u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438</b>\n\n"
         "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044e:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
@@ -135,10 +135,10 @@ async def cb_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     else:
         for name, price, sid in items:
             lines.append(f"\u2022 <a href=\"{_link(sid)}\">{_html.escape(name)}</a> \u2014 <b>{_price(price)}</b>")
-    lines.append(f"\n\U0001f4b0 \u0422\u043e\u0432\u0430\u0440\u043e\u0432: {len(items)}")
+    lines.append(f"\n\ud83d\udcb0 \u0422\u043e\u0432\u0430\u0440\u043e\u0432: {len(items)}")
     kb = [
         [InlineKeyboardButton("\u25c0\ufe0f \u041d\u0430\u0437\u0430\u0434", callback_data="stock")],
-        [InlineKeyboardButton("\U0001f4ac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
     ]
     text = "\n".join(lines)
     if len(text) > 4000:
@@ -169,13 +169,13 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     user = update.effective_user
     kb = [
-        [InlineKeyboardButton("\U0001f4e6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
-        [InlineKeyboardButton("\U0001f6cd\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("\U0001f4ac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("\ud83d\udce6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
+        [InlineKeyboardButton("\ud83d\udecb\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
     ]
     await query.edit_message_text(
-        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \U0001f44b\n\n"
-        "\u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
+        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \ud83d\udc4b\n\n"
+        "\ud83c\udf4f \u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
         "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
@@ -184,14 +184,14 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    if str(user.id) != str(ADMIN_CHAT_ID):
+    if user.id not in SUPER_ADMINS:
         await update.message.reply_text("\u274c \u0423 \u0432\u0430\u0441 \u043d\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u0430.")
         return
 
     args = ctx.args
     if not args or len(args) < 2:
         await update.message.reply_text(
-            "\ud83d\udee0 <b>\u0410\u0434\u043c\u0438\u043d-\u043a\u043eм\u0430\u043d\u0434\u044b:</b>\n\n"
+            "\ud83d\udee0 <b>\u0410\u0434\u043c\u0438\u043d-\u043a\u043e\u043c\u0430\u043d\u0434\u044b:</b>\n\n"
             "\u2022 <code>/admin ban [user_id]</code> \u2014 \u0437\u0430\u0431\u0430\u043d\u0438\u0442\u044c \u044e\u0437\u0435\u0440\u0430\n"
             "\u2022 <code>/admin unban [user_id]</code> \u2014 \u0440\u0430\u0437\u0431\u0430\u043d\u0438\u0442\u044c \u044e\u0437\u0435\u0440\u0430\n"
             "\u2022 <code>/admin grant [user_id]</code> \u2014 \u0440\u0430\u0437\u0440\u0435\u0448\u0438\u0442\u044c \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0435 \u0442\u043e\u0432\u0430\u0440\u043e\u0432\n"
@@ -211,7 +211,6 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        # Проверим есть ли такой юзер в базе, если нет — создадим
         cursor.execute("SELECT id FROM users WHERE telegram_id = ?", (target_id,))
         user_exists = cursor.fetchone()
         if not user_exists:
@@ -227,7 +226,7 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             msg = f"\u2705 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u0440\u0430\u0437\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d</b>."
         elif action == "grant":
             cursor.execute("UPDATE users SET can_sell = 1 WHERE telegram_id = ?", (target_id,))
-            msg = f"\u2705 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u043c\u043e\u0436\u0435\u0442 \u0441\u043e\u0437\u0434\u0430\u0432\u0430\u0442\u044c \u0442\u043e\u0432\u0430\u0440\u044b</b>."
+            msg = f"\u2705 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u043c\u043e\u0436\u0435\u0442 \u0441\u043e\u0437\u0434\u0430\u0432\u0430\u0442\u044c \u0442\u043e\u0432\u0430\u0440\u043e\u0432</b>."
         elif action == "revoke":
             cursor.execute("UPDATE users SET can_sell = 0 WHERE telegram_id = ?", (target_id,))
             msg = f"\u274c \u0423 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f <code>{target_id}</code> <b>\u0437\u0430\u0431\u0440\u0430\u043d\u043e \u043f\u0440\u0430\u0432\u043e \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u044f \u0442\u043e\u0432\u0430\u0440\u043e\u0432</b>."
@@ -242,11 +241,10 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def send_purchase_log(app_bot, product_title, product_price, user_info, product_id):
-    if not ADMIN_CHAT_ID:
-        logger.warning("ADMIN_CHAT_ID not set, skipping purchase log")
-        return
+    # Отправляем логи всем суперадминам
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
     prod_url = f"{WEBAPP_URL}/product/{product_id}"
+    # Заменяем суррогатные эмодзи обычными, чтобы не ломался utf-8 кодер в telegram API
     text = (
         "\ud83d\uded2 <b>\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u043a\u0430\u0437!</b>\n\n"
         f"\ud83d\udce6 \u0422\u043e\u0432\u0430\u0440: <a href=\"{prod_url}\"><b>{_html.escape(product_title)}</b></a>\n"
@@ -254,10 +252,12 @@ async def send_purchase_log(app_bot, product_title, product_price, user_info, pr
         f"\ud83d\udc64 \u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c: {_html.escape(user_info)}\n"
         f"\ud83d\udd52 \u0414\u0430\u0442\u0430: {now}"
     )
-    try:
-        await app_bot.send_message(chat_id=ADMIN_CHAT_ID, text=text, parse_mode="HTML")
-    except Exception as e:
-        logger.error(f"Failed to send purchase log: {e}")
+    # Отправляем лог каждому суперадмину
+    for admin_id in SUPER_ADMINS:
+        try:
+            await app_bot.send_message(chat_id=admin_id, text=text, parse_mode="HTML")
+        except Exception as e:
+            logger.error(f"Failed to send purchase log to {admin_id}: {e}")
 
 
 def create_bot_app():

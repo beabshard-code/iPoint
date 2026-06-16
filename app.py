@@ -5,7 +5,7 @@ import logging
 from flask import Flask, render_template, request, jsonify, abort
 from flask_login import LoginManager, current_user
 from models import db, User, Product, CATEGORIES
-from config import BOT_TOKEN
+from config import BOT_TOKEN, SUPER_ADMINS
 
 logging.basicConfig(
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
@@ -61,11 +61,14 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
-        from config import ADMIN_CHAT_ID
         is_admin = False
         if current_user.is_authenticated:
-            if current_user.telegram_id == str(ADMIN_CHAT_ID) or current_user.can_sell:
-                is_admin = True
+            try:
+                t_id = int(current_user.telegram_id) if current_user.telegram_id else 0
+                if t_id in SUPER_ADMINS or current_user.can_sell:
+                    is_admin = True
+            except Exception:
+                pass
         return {"CATEGORIES": CATEGORIES, "BRAND": "iPoint Store", "is_admin": is_admin}
 
     @app.errorhandler(404)
@@ -131,10 +134,9 @@ def create_app():
 def seed_data():
     if User.query.first():
         return
-    from config import ADMIN_CHAT_ID
     demo = User(
         name="iPoint Store Admin",
-        telegram_id=str(ADMIN_CHAT_ID) if ADMIN_CHAT_ID else "8229778449",
+        telegram_id=str(SUPER_ADMINS[0]) if SUPER_ADMINS else "8229778449",
         city="\u041c\u043e\u0441\u043a\u0432\u0430",
         phone="+7 900 000-00-00",
         bio="\u0410\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 iPoint Store.",
