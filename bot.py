@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import html as _html
 import sqlite3
 import os
@@ -82,7 +82,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     kb = [
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("💬 Менеджер", url="https://t.me/iPointManager")],
     ]
     await update.message.reply_text(
         f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
@@ -144,7 +144,7 @@ async def cb_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lines.append(f"\n💰 Товаров: {len(items)}")
     kb = [
         [InlineKeyboardButton("◀️ Назад", callback_data="stock")],
-        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("💬 Менеджер", url="https://t.me/iPointManager")],
     ]
     text = "\n".join(lines)
     if len(text) > 4000:
@@ -177,7 +177,7 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
     kb = [
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("💬 Менеджер", url="https://t.me/iPointManager")],
     ]
     await query.edit_message_text(
         f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
