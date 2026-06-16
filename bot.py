@@ -16,16 +16,16 @@ def _link(sid):
     return f"{BOT_LINK}{sid}"
 
 def _price(p):
-    return f"{p:,}".replace(",", ".") + "\u20bd"
+    return f"{p:,}".replace(",", ".") + "₽"
 
-# Категории для бота
+# Категории для бота с обычными UTF-8 эмодзи напрямую
 CATEGORIES_MAP = {
-    "iphone": {"emoji": "\u201a", "label": "iPhone"},
-    "ipad": {"emoji": "\u201e", "label": "iPad"},
-    "mac": {"emoji": "\u2026", "label": "Mac"},
-    "watch": {"emoji": "\u231a", "label": "Apple Watch"},
-    "airpods": {"emoji": "\u2020", "label": "AirPods"},
-    "accessories": {"emoji": "\u2021", "label": "\u0410\u043a\u0441\u0435\u0441\u0441\u0443\u0430\u0440\u044b"}
+    "iphone": {"emoji": "📱", "label": "iPhone"},
+    "ipad": {"emoji": "📟", "label": "iPad"},
+    "mac": {"emoji": "💻", "label": "Mac"},
+    "watch": {"emoji": "⌚", "label": "Apple Watch"},
+    "airpods": {"emoji": "🎧", "label": "AirPods"},
+    "accessories": {"emoji": "🔌", "label": "Аксессуары"}
 }
 
 def get_db_products(category_slug=None):
@@ -50,7 +50,6 @@ def get_db_products(category_slug=None):
         logger.error(f"DB error in bot: {e}")
     return products
 
-# Проверка бана
 def is_user_banned(tg_id):
     if not os.path.exists(DB_PATH):
         return False
@@ -70,18 +69,21 @@ def is_user_banned(tg_id):
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if is_user_banned(user.id):
-        await update.message.reply_text("\u274c \u0412\u044b \u0437\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d\u044b \u0432 iPoint Store.")
+        await update.message.reply_text("❌ Вы заблокированы в iPoint Store.")
         return
 
+    # Чистим имя пользователя от суррогатных символов на всякий случай
+    first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
+
     kb = [
-        [InlineKeyboardButton("\ud83d\udce6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
-        [InlineKeyboardButton("\ud83d\udecb\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
+        [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
     ]
     await update.message.reply_text(
-        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \ud83d\udc4b\n\n"
-        "\ud83c\udf4f \u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
-        "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:",
+        f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
+        "🍏 Совместимый с Mini-App магазин <b>iPoint Store</b>!\n\n"
+        "Выберите действие:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
     )
@@ -106,10 +108,10 @@ async def cb_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"{info['emoji']} {info['label']} ({total})",
             callback_data=f"cat_{key}",
         )])
-    kb.append([InlineKeyboardButton("\u25c0\ufe0f \u041d\u0430\u0437\u0430\u0434", callback_data="back_start")])
+    kb.append([InlineKeyboardButton("◀️ Назад", callback_data="back_start")])
     await query.edit_message_text(
-        "\ud83d\udce6 <b>\u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438</b>\n\n"
-        "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044e:",
+        "📦 <b>В наличии</b>\n\n"
+        "Выберите категорию:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
     )
@@ -124,21 +126,21 @@ async def cb_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     key = query.data.replace("cat_", "")
     info = CATEGORIES_MAP.get(key)
     if not info:
-        await query.edit_message_text("\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430.")
+        await query.edit_message_text("Категория не найдена.")
         return
     
     items = get_db_products(key)
     
     lines = [f"{info['emoji']} <b>{_html.escape(info['label'])}</b>\n"]
     if not items:
-        lines.append("\u0422\u043e\u0432\u0430\u0440\u043e\u0432 \u043d\u0435\u0442 \u0432 \u043d\u0430\u043b\u0438\u0447\u0438\u0438.")
+        lines.append("Товаров нет в наличии.")
     else:
         for name, price, sid in items:
-            lines.append(f"\u2022 <a href=\"{_link(sid)}\">{_html.escape(name)}</a> \u2014 <b>{_price(price)}</b>")
-    lines.append(f"\n\ud83d\udcb0 \u0422\u043e\u0432\u0430\u0440\u043e\u0432: {len(items)}")
+            lines.append(f"• <a href=\"{_link(sid)}\">{_html.escape(name)}</a> — <b>{_price(price)}</b>")
+    lines.append(f"\n💰 Товаров: {len(items)}")
     kb = [
-        [InlineKeyboardButton("\u25c0\ufe0f \u041d\u0430\u0437\u0430\u0434", callback_data="stock")],
-        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("◀️ Назад", callback_data="stock")],
+        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
     ]
     text = "\n".join(lines)
     if len(text) > 4000:
@@ -155,7 +157,7 @@ async def cb_category(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         for part in parts[1:]:
             await query.message.reply_text(part, parse_mode="HTML", disable_web_page_preview=True)
         await query.message.reply_text(
-            "\u2195\ufe0f \u041d\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u044f:",
+            "↕️ Навигация:",
             reply_markup=InlineKeyboardMarkup(kb),
         )
     else:
@@ -168,15 +170,16 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     await query.answer()
     user = update.effective_user
+    first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
     kb = [
-        [InlineKeyboardButton("\ud83d\udce6 \u0412 \u043d\u0430\u043b\u0438\u0447\u0438\u0438", callback_data="stock")],
-        [InlineKeyboardButton("\ud83d\udecb\ufe0f \u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043c\u0430\u0433\u0430\u0437\u0438\u043d", web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton("\ud83d\udcac \u041f\u043e\u0434\u0434\u0435\u0440\u0436\u043a\u0430", url="https://t.me/iPointManager")],
+        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
+        [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("💬 Поддержка", url="https://t.me/iPointManager")],
     ]
     await query.edit_message_text(
-        f"\u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435, {_html.escape(user.first_name)}! \ud83d\udc4b\n\n"
-        "\ud83c\udf4f \u0421\u043e\u0432\u043c\u0435\u0441\u0442\u0438\u043c\u044b\u0439 \u0441 Mini-App \u043c\u0430\u0433\u0430\u0437\u0438\u043d <b>iPoint Store</b>!\n\n"
-        "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435:",
+        f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
+        "🍏 Совместимый с Mini-App магазин <b>iPoint Store</b>!\n\n"
+        "Выберите действие:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
     )
@@ -185,17 +188,17 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user.id not in SUPER_ADMINS:
-        await update.message.reply_text("\u274c \u0423 \u0432\u0430\u0441 \u043d\u0435\u0442 \u0434\u043e\u0441\u0442\u0443\u043f\u0430.")
+        await update.message.reply_text("❌ У вас нет доступа.")
         return
 
     args = ctx.args
     if not args or len(args) < 2:
         await update.message.reply_text(
-            "\ud83d\udee0 <b>\u0410\u0434\u043c\u0438\u043d-\u043a\u043e\u043c\u0430\u043d\u0434\u044b:</b>\n\n"
-            "\u2022 <code>/admin ban [user_id]</code> \u2014 \u0437\u0430\u0431\u0430\u043d\u0438\u0442\u044c \u044e\u0437\u0435\u0440\u0430\n"
-            "\u2022 <code>/admin unban [user_id]</code> \u2014 \u0440\u0430\u0437\u0431\u0430\u043d\u0438\u0442\u044c \u044e\u0437\u0435\u0440\u0430\n"
-            "\u2022 <code>/admin grant [user_id]</code> \u2014 \u0440\u0430\u0437\u0440\u0435\u0448\u0438\u0442\u044c \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u0435 \u0442\u043e\u0432\u0430\u0440\u043e\u0432\n"
-            "\u2022 <code>/admin revoke [user_id]</code> \u2014 \u0437\u0430\u0431\u0440\u0430\u0442\u044c \u0440\u0430\u0437\u0440\u0435\u0448\u0435\u043d\u0438\u0435",
+            "🛠️ <b>Админ-команды:</b>\n\n"
+            "• <code>/admin ban [user_id]</code> — забанить юзера\n"
+            "• <code>/admin unban [user_id]</code> — разбанить\n"
+            "• <code>/admin grant [user_id]</code> — разрешить создание товаров\n"
+            "• <code>/admin revoke [user_id]</code> — забрать разрешение",
             parse_mode="HTML"
         )
         return
@@ -204,7 +207,7 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     target_id = args[1]
 
     if not os.path.exists(DB_PATH):
-        await update.message.reply_text("\u274c \u0411\u0430\u0437\u0430 \u0434\u0430\u043d\u043d\u044b\u0445 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u0430.")
+        await update.message.reply_text("❌ База данных не найдена.")
         return
 
     try:
@@ -220,42 +223,41 @@ async def cmd_admin(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
         if action == "ban":
             cursor.execute("UPDATE users SET is_banned = 1 WHERE telegram_id = ?", (target_id,))
-            msg = f"\u274c \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u0437\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d</b>."
+            msg = f"❌ Пользователь <code>{target_id}</code> <b>заблокирован</b>."
         elif action == "unban":
             cursor.execute("UPDATE users SET is_banned = 0 WHERE telegram_id = ?", (target_id,))
-            msg = f"\u2705 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u0440\u0430\u0437\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d</b>."
+            msg = f"✅ Пользователь <code>{target_id}</code> <b>разблокирован</b>."
         elif action == "grant":
             cursor.execute("UPDATE users SET can_sell = 1 WHERE telegram_id = ?", (target_id,))
-            msg = f"\u2705 \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c <code>{target_id}</code> <b>\u043c\u043e\u0436\u0435\u0442 \u0441\u043e\u0437\u0434\u0430\u0432\u0430\u0442\u044c \u0442\u043e\u0432\u0430\u0440\u043e\u0432</b>."
+            msg = f"✅ Пользователь <code>{target_id}</code> <b>может создавать товары</b>."
         elif action == "revoke":
             cursor.execute("UPDATE users SET can_sell = 0 WHERE telegram_id = ?", (target_id,))
-            msg = f"\u274c \u0423 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f <code>{target_id}</code> <b>\u0437\u0430\u0431\u0440\u0430\u043d\u043e \u043f\u0440\u0430\u0432\u043e \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u044f \u0442\u043e\u0432\u0430\u0440\u043e\u0432</b>."
+            msg = f"❌ У пользователя <code>{target_id}</code> <b>забрано право создания товаров</b>."
         else:
-            msg = "\u274c \u041d\u0435\u0438\u0437\u0432\u0435\u0441\u0442\u043d\u0430\u044f \u043a\u043e\u043c\u0430\u043d\u0434\u0430."
+            msg = "❌ Неизвестная команда."
             
         conn.commit()
         conn.close()
         await update.message.reply_text(msg, parse_mode="HTML")
     except Exception as e:
-        await update.message.reply_text(f"\u274c \u041e\u0448\u0438\u0431\u043a\u0430: {e}")
+        await update.message.reply_text(f"❌ Ошибка: {e}")
 
 
 async def send_purchase_log(app_bot, product_title, product_price, user_info, product_id):
-    # Отправляем логи всем суперадминам
     now = datetime.now().strftime("%d.%m.%Y %H:%M")
     prod_url = f"{WEBAPP_URL}/product/{product_id}"
-    # Заменяем суррогатные эмодзи обычными, чтобы не ломался utf-8 кодер в telegram API
-    text = (
-        "\ud83d\uded2 <b>\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u043a\u0430\u0437!</b>\n\n"
-        f"\ud83d\udce6 \u0422\u043e\u0432\u0430\u0440: <a href=\"{prod_url}\"><b>{_html.escape(product_title)}</b></a>\n"
-        f"\ud83d\udcb0 \u0421\u0443\u043c\u043c\u0430: <b>{_price(product_price)}</b>\n"
-        f"\ud83d\udc64 \u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c: {_html.escape(user_info)}\n"
-        f"\ud83d\udd52 \u0414\u0430\u0442\u0430: {now}"
+    # Полностью чистим строку от суррогатных символов перед отправкой
+    raw_text = (
+        "🛒 <b>Новый заказ!</b>\n\n"
+        f"📦 Товар: <a href=\"{prod_url}\"><b>{_html.escape(product_title)}</b></a>\n"
+        f"💰 Сумма: <b>{_price(product_price)}</b>\n"
+        f"👤 Покупатель: {_html.escape(user_info)}\n"
+        f"🕒 Дата: {now}"
     )
-    # Отправляем лог каждому суперадмину
+    clean_text = raw_text.encode('utf-8', 'ignore').decode('utf-8')
     for admin_id in SUPER_ADMINS:
         try:
-            await app_bot.send_message(chat_id=admin_id, text=text, parse_mode="HTML")
+            await app_bot.send_message(chat_id=admin_id, text=clean_text, parse_mode="HTML")
         except Exception as e:
             logger.error(f"Failed to send purchase log to {admin_id}: {e}")
 
