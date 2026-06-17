@@ -82,12 +82,14 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     kb = [
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
         [InlineKeyboardButton("💬 Менеджер", url="https://t.me/iPointManager")],
     ]
     await update.message.reply_text(
-        f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
-        "🍏 Совместимый с Mini-App магазин <b>iPoint Store</b>!\n\n"
-        "Выберите действие:",
+        "👋 Добро пожаловать в <b>iPoint STORE</b>!\n\n"
+        "📱 Б/у техника Apple по выгодным ценам.\n"
+        "✅ iPhone, iPad, MacBook, Watch, AirPods\n\n"
+        "Выберите действие кнопками ниже:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
     )
@@ -177,12 +179,14 @@ async def cb_back_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     first_name = user.first_name.encode('utf-8', 'ignore').decode('utf-8')
     kb = [
         [InlineKeyboardButton("🛍️ Открыть магазин", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton("📦 В наличии", callback_data="stock")],
         [InlineKeyboardButton("💬 Менеджер", url="https://t.me/iPointManager")],
     ]
     await query.edit_message_text(
-        f"Здравствуйте, {_html.escape(first_name)}! 👋\n\n"
-        "🍏 Совместимый с Mini-App магазин <b>iPoint Store</b>!\n\n"
-        "Выберите действие:",
+        "👋 Добро пожаловать в <b>iPoint STORE</b>!\n\n"
+        "📱 Б/у техника Apple по выгодным ценам.\n"
+        "✅ iPhone, iPad, MacBook, Watch, AirPods\n\n"
+        "Выберите действие кнопками ниже:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(kb),
     )
