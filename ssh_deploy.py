@@ -41,7 +41,9 @@ try:
     execute_command(ssh, "rm -rf /var/www/ipoint")
     execute_command(ssh, "mkdir -p /var/www")
     execute_command(ssh, "git clone https://github.com/beabshard-code/iPoint.git /var/www/ipoint")
-    execute_command(ssh, f"rm -rf /var/www/ipoint/static/uploads && ln -s {DATA_DIR}/uploads /var/www/ipoint/static/uploads")
+    execute_command(ssh, "rm -rf /var/www/ipoint/static/uploads")
+    execute_command(ssh, f"ln -sfn {DATA_DIR}/uploads /var/www/ipoint/static/uploads")
+    execute_command(ssh, "test -L /var/www/ipoint/static/uploads && echo 'SYMLINK OK' || echo 'SYMLINK FAILED'")
 
     execute_command(ssh, "python3 -m venv /var/www/ipoint/venv")
     execute_command(ssh, "/var/www/ipoint/venv/bin/pip install --upgrade pip")
