@@ -97,10 +97,11 @@ WantedBy=multi-user.target
     print("Service files generated.")
 
     execute_command(ssh, "systemctl disable --now ipoint.service 2>/dev/null; rm -f /etc/systemd/system/ipoint.service")
+    execute_command(ssh, "systemctl stop ipoint-bot.service 2>/dev/null; pkill -9 -f run_bot.py 2>/dev/null; sleep 1; echo cleaned")
     execute_command(ssh, "systemctl daemon-reload")
     execute_command(ssh, "systemctl enable ipoint-web.service ipoint-bot.service")
     execute_command(ssh, "systemctl restart ipoint-web.service")
-    execute_command(ssh, "systemctl restart ipoint-bot.service")
+    execute_command(ssh, "systemctl start ipoint-bot.service")
 
     time.sleep(3)
     execute_command(ssh, "systemctl status ipoint-web.service --no-pager -l")
