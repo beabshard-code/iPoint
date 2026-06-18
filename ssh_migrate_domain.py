@@ -1,10 +1,13 @@
 import paramiko
 import sys
 
-host = "64.188.66.177"
-user = "root"
-password = "s081109g"
+import os
+host = os.environ.get("IPOINT_VPS_HOST", "64.188.66.177")
+user = os.environ.get("IPOINT_VPS_USER", "root")
+password = os.environ.get("IPOINT_VPS_PASSWORD", "")
 domain = "ipointshop.xyz"
+if not password:
+    raise SystemExit("ERROR: set IPOINT_VPS_PASSWORD env var before running.")
 
 
 def run(ssh, cmd, show=True):

@@ -1,16 +1,24 @@
 import paramiko
+import os
 import time
 import sys
 
-host = "64.188.66.177"
-user = "root"
-password = "s081109g"
+host = os.environ.get("IPOINT_VPS_HOST", "64.188.66.177")
+user = os.environ.get("IPOINT_VPS_USER", "root")
+password = os.environ.get("IPOINT_VPS_PASSWORD", "")
 
 WEBAPP_URL = "https://ipointshop.xyz"
-BOT_TOKEN = "8776287559:AAG8lZOhnTax62x4hQGxwCosKkNkXfBkzUs"
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 ADMIN_CHAT_ID = "8229778449"
 BOT_USERNAME = "iPoin_Shop_bot"
 DATA_DIR = "/var/lib/ipoint"
+
+if not BOT_TOKEN:
+    print("ERROR: set BOT_TOKEN env var before deploy, e.g.  $env:BOT_TOKEN='...'; python ssh_deploy.py")
+    sys.exit(1)
+if not password:
+    print("ERROR: set IPOINT_VPS_PASSWORD env var before deploy.")
+    sys.exit(1)
 
 
 def execute_command(ssh, cmd):

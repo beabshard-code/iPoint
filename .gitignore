@@ -4,3 +4,8 @@ __pycache__/
 *.db
 static/uploads
 .env
+
+# Local ops scripts (may contain VPS credentials) - keep out of repo
+ssh_*.py
+!ssh_deploy.py
+!ssh_migrate_domain.py
