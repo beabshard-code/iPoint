@@ -7,7 +7,7 @@ user = "root"
 password = "s081109g"
 
 WEBAPP_URL = "https://ipointshop.xyz"
-BOT_TOKEN = "8820332779:AAFRx0VbpIOul4aYSqbMsphaIL6rk8E6h1I"
+BOT_TOKEN = "8776287559:AAG8lZOhnTax62x4hQGxwCosKkNkXfBkzUs"
 ADMIN_CHAT_ID = "8229778449"
 BOT_USERNAME = "iPoin_Shop_bot"
 DATA_DIR = "/var/lib/ipoint"
